@@ -1,78 +1,105 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+// pages/index.tsx
+import React, { useMemo, useState } from "react";
+import { HERO_BG, FILTER_LABELS, PROPERTYLISTINGSAMPLE } from "@/constants";
+import type { PropertyProps } from "@/interfaces";
+import Pill from "@/components/common/Pill";
+import PropertyCard from "@/components/common/PropertyCard";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const Home: React.FC = () => {
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = PROPERTYLISTINGSAMPLE.filter((p) => {
+      const matchesQuery =
+        q.length === 0 ||
+        p.name.toLowerCase().includes(q) ||
+        p.address.city.toLowerCase().includes(q) ||
+        p.address.country.toLowerCase().includes(q);
 
-export default function Home() {
+      const matchesFilter =
+        !activeFilter ||
+        p.category.some((c) => c.toLowerCase().includes(activeFilter.toLowerCase())) ||
+        activeFilter.toLowerCase() === "top villa" && p.name.toLowerCase().includes("villa");
+
+      return matchesQuery && matchesFilter;
+    });
+
+    return list;
+  }, [activeFilter, query]);
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the index.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      {/* HERO */}
+      <section
+        className="relative bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.25)), url(${HERO_BG})`,
+        }}
+        aria-label="Hero"
+      >
+        <div className="max-w-7xl mx-auto px-4 py-20 sm:py-28 lg:py-32">
+          <div className="text-white max-w-2xl">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold">
+              Find your favorite place here!
+            </h1>
+            <p className="mt-4 text-sm sm:text-base">
+              The best prices for over 2 million properties worldwide.
+            </p>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search city, country or property name..."
+                className="w-full sm:w-auto px-4 py-3 rounded-md text-gray-900"
+              />
+              <button
+                onClick={() => { /* intentionally simple for this milestone */ }}
+                className="px-4 py-3 bg-indigo-600 text-white rounded-md"
+              >
+                Explore
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </section>
+
+      {/* FILTERS */}
+      <section className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Discover places</h2>
+          <div className="text-sm text-gray-600">{filtered.length} results</div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Pill
+            label="All"
+            active={activeFilter === null}
+            onClick={() => setActiveFilter(null)}
+          />
+          {FILTER_LABELS.map((label) => (
+            <Pill
+              key={label}
+              label={label}
+              active={activeFilter === label}
+              onClick={() => setActiveFilter((prev) => (prev === label ? null : label))}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* LISTINGS */}
+      <section className="max-w-7xl mx-auto px-4 pb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((item: PropertyProps) => (
+            <PropertyCard key={item.name + item.address.city} item={item} />
+          ))}
+        </div>
+      </section>
     </div>
   );
-}
+};
+
+export default Home;
